@@ -1,0 +1,360 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cinematic-studio.dev/schemas/v1/project.json",
+  "title": "CinematicAnimationStudioProject",
+  "description": "Canonical project schema for the data-driven cinematic cartoon animation studio.",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "id",
+    "title",
+    "createdAt",
+    "updatedAt",
+    "settings",
+    "assets",
+    "episodes"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "settings": {
+      "$ref": "#/$defs/ProjectSettings"
+    },
+    "assets": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/AssetManifest"
+      }
+    },
+    "episodes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/Episode"
+      }
+    }
+  },
+  "$defs": {
+    "Vector3Tuple": {
+      "type": "array",
+      "prefixItems": [
+        { "type": "number" },
+        { "type": "number" },
+        { "type": "number" }
+      ],
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "ColorRGB": {
+      "type": "array",
+      "prefixItems": [
+        { "type": "number", "minimum": 0, "maximum": 1 },
+        { "type": "number", "minimum": 0, "maximum": 1 },
+        { "type": "number", "minimum": 0, "maximum": 1 }
+      ],
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "ColorRGBA": {
+      "type": "array",
+      "prefixItems": [
+        { "type": "number", "minimum": 0, "maximum": 1 },
+        { "type": "number", "minimum": 0, "maximum": 1 },
+        { "type": "number", "minimum": 0, "maximum": 1 },
+        { "type": "number", "minimum": 0, "maximum": 1 }
+      ],
+      "minItems": 4,
+      "maxItems": 4
+    },
+    "ProjectSettings": {
+      "type": "object",
+      "required": ["title", "fps", "width", "height"],
+      "properties": {
+        "title": { "type": "string" },
+        "fps": { "type": "integer", "minimum": 12, "maximum": 120, "default": 30 },
+        "width": { "type": "integer", "minimum": 320, "default": 1920 },
+        "height": { "type": "integer", "minimum": 240, "default": 1080 },
+        "author": { "type": "string" },
+        "qualityPreset": {
+          "type": "string",
+          "enum": ["draft", "preview", "cinematic"],
+          "default": "preview"
+        }
+      }
+    },
+    "InteractionAnchor": {
+      "type": "object",
+      "required": ["id", "name", "type", "position"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "type": {
+          "type": "string",
+          "enum": [
+            "seat",
+            "approach",
+            "climb_start",
+            "climb_end",
+            "shower_spot",
+            "hand_grab",
+            "look_target",
+            "spawn",
+            "custom"
+          ]
+        },
+        "position": { "$ref": "#/$defs/Vector3Tuple" },
+        "rotation": { "$ref": "#/$defs/Vector3Tuple" },
+        "description": { "type": "string" }
+      }
+    },
+    "AssetManifest": {
+      "type": "object",
+      "required": ["id", "name", "type", "uri"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "type": {
+          "type": "string",
+          "enum": ["character", "environment", "prop", "audio"]
+        },
+        "uri": { "type": "string" },
+        "rigProfileId": { "type": "string" },
+        "anchors": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/InteractionAnchor" }
+        },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "metadata": { "type": "object" }
+      }
+    },
+    "Episode": {
+      "type": "object",
+      "required": ["id", "name", "scenes"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "scenes": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/Scene" }
+        }
+      }
+    },
+    "Scene": {
+      "type": "object",
+      "required": ["id", "name", "environment", "characters", "props", "tracks", "shots"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "environment": { "$ref": "#/$defs/EnvironmentConfig" },
+        "characters": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/CharacterInstance" }
+        },
+        "props": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/PropInstance" }
+        },
+        "tracks": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/TimelineTrack" }
+        },
+        "shots": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Shot" }
+        }
+      }
+    },
+    "EnvironmentConfig": {
+      "type": "object",
+      "required": ["assetId"],
+      "properties": {
+        "assetId": { "type": "string" },
+        "fogMode": { "type": "string", "enum": ["none", "exp", "exp2", "linear"] },
+        "fogDensity": { "type": "number", "minimum": 0 },
+        "fogColor": { "$ref": "#/$defs/ColorRGB" },
+        "clearColor": { "$ref": "#/$defs/ColorRGBA" },
+        "sunlight": {
+          "type": "object",
+          "required": ["direction", "intensity", "color", "shadowEnabled"],
+          "properties": {
+            "direction": { "$ref": "#/$defs/Vector3Tuple" },
+            "intensity": { "type": "number", "minimum": 0 },
+            "color": { "$ref": "#/$defs/ColorRGB" },
+            "shadowEnabled": { "type": "boolean" }
+          }
+        },
+        "ambientLight": {
+          "type": "object",
+          "required": ["intensity", "skyColor", "groundColor"],
+          "properties": {
+            "intensity": { "type": "number", "minimum": 0 },
+            "skyColor": { "$ref": "#/$defs/ColorRGB" },
+            "groundColor": { "$ref": "#/$defs/ColorRGB" }
+          }
+        }
+      }
+    },
+    "CharacterInstance": {
+      "type": "object",
+      "required": ["id", "name", "assetId", "initialPosition", "initialRotation"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "assetId": { "type": "string" },
+        "initialPosition": { "$ref": "#/$defs/Vector3Tuple" },
+        "initialRotation": { "$ref": "#/$defs/Vector3Tuple" },
+        "initialScale": { "$ref": "#/$defs/Vector3Tuple" }
+      }
+    },
+    "PropInstance": {
+      "type": "object",
+      "required": ["id", "name", "assetId", "initialPosition", "initialRotation"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "assetId": { "type": "string" },
+        "initialPosition": { "$ref": "#/$defs/Vector3Tuple" },
+        "initialRotation": { "$ref": "#/$defs/Vector3Tuple" },
+        "initialScale": { "$ref": "#/$defs/Vector3Tuple" },
+        "attachedToEntityId": { "type": "string" },
+        "attachedAnchorId": { "type": "string" }
+      }
+    },
+    "Shot": {
+      "type": "object",
+      "required": ["id", "name", "startFrame", "durationFrames", "cameraPreset"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "startFrame": { "type": "integer", "minimum": 0 },
+        "durationFrames": { "type": "integer", "minimum": 1 },
+        "cameraPreset": { "$ref": "#/$defs/CameraPresetType" },
+        "primaryTargetId": { "type": "string" },
+        "description": { "type": "string" }
+      }
+    },
+    "CameraPresetType": {
+      "type": "string",
+      "enum": [
+        "establishing_wide",
+        "medium",
+        "close_up",
+        "over_shoulder",
+        "tracking_side",
+        "follow",
+        "orbit",
+        "low_angle",
+        "high_angle",
+        "reveal",
+        "static",
+        "dolly_in",
+        "dolly_out"
+      ]
+    },
+    "TimelineTrack": {
+      "type": "object",
+      "required": ["id", "name", "type", "clips"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "type": {
+          "type": "string",
+          "enum": ["character", "camera", "dialogue", "audio", "effect"]
+        },
+        "targetEntityId": { "type": "string" },
+        "muted": { "type": "boolean" },
+        "locked": { "type": "boolean" },
+        "clips": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/TimelineClip" }
+        }
+      }
+    },
+    "TimelineClip": {
+      "type": "object",
+      "required": ["id", "name", "trackId", "startFrame", "durationFrames", "type"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "trackId": { "type": "string" },
+        "startFrame": { "type": "integer", "minimum": 0 },
+        "durationFrames": { "type": "integer", "minimum": 1 },
+        "type": {
+          "type": "string",
+          "enum": ["action", "camera", "dialogue", "audio", "effect"]
+        },
+        "action": {
+          "type": "object",
+          "required": ["actionId"],
+          "properties": {
+            "actionId": { "type": "string" },
+            "parameters": { "type": "object" },
+            "targetAnchorId": { "type": "string" },
+            "targetEntityId": { "type": "string" },
+            "blendInFrames": { "type": "integer", "minimum": 0 },
+            "blendOutFrames": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "camera": {
+          "type": "object",
+          "required": ["preset"],
+          "properties": {
+            "preset": { "$ref": "#/$defs/CameraPresetType" },
+            "targetEntityId": { "type": "string" },
+            "targetAnchorId": { "type": "string" },
+            "targetPosition": { "$ref": "#/$defs/Vector3Tuple" }
+          }
+        },
+        "dialogue": {
+          "type": "object",
+          "required": ["characterId", "text"],
+          "properties": {
+            "characterId": { "type": "string" },
+            "text": { "type": "string" },
+            "audioClipId": { "type": "string" },
+            "voice": { "type": "string" }
+          }
+        },
+        "audio": {
+          "type": "object",
+          "required": ["assetId"],
+          "properties": {
+            "assetId": { "type": "string" },
+            "volume": { "type": "number", "minimum": 0, "maximum": 1 },
+            "loop": { "type": "boolean" }
+          }
+        },
+        "effect": {
+          "type": "object",
+          "required": ["effectId"],
+          "properties": {
+            "effectId": { "type": "string" },
+            "parameters": { "type": "object" }
+          }
+        }
+      }
+    }
+  }
+}
